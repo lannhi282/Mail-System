@@ -40,8 +40,8 @@ app.use(
 // Serve static files
 app.use(express.static(path.join(__dirname, "Mail_System/frontend")));
 
-// Serve index.html cho tất cả routes khác
-app.get("*", (req, res) => {
+// Serve index.html cho tất cả routes khác (fallback)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "Mail_System/frontend/index.html"));
 });
 
