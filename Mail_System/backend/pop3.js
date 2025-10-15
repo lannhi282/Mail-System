@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
-import POP3Client from "node-pop3";
-
+import { POP3Client } from "node-pop3";
 dotenv.config();
 
 const client = new POP3Client(

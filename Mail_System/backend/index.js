@@ -11,8 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load .env from root directory
-dotenv.config({ path: path.join(__dirname, "../../.env") });
-
+dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -97,7 +96,8 @@ app.get("/receive", async (req, res) => {
   }
 });
 
-app.listen(3001, "0.0.0.0", () => {
-  console.log("🚀 Mail System backend chạy tại http://0.0.0.0:3001");
-  console.log("📧 Email:", EMAIL);
+app.listen(3001, "127.0.0.1", () => {
+  console.log("🚀 Mail System backend đã khởi động tại http://127.0.0.1:3001");
+  console.log("📧 Email đã cấu hình:", EMAIL);
+  console.log("✅ Sẵn sàng nhận request");
 });
