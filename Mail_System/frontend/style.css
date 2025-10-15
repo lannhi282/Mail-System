@@ -43,5 +43,20 @@ button:hover {
 
 #emails {
   margin-top: 10px;
-  white-space: pre-wrap;
+}
+
+.email-item {
+  background: #f8f9fa;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.email-item strong {
+  color: #007bff;
+}
+
+.email-item small {
+  color: #6c757d;
 }

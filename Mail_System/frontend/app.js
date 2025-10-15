@@ -1,4 +1,4 @@
-const API = "http://localhost:3000";
+const API = "/api";
 
 async function sendMail() {
   const to = document.getElementById("to").value;
@@ -20,5 +20,22 @@ async function getMail() {
   const emails = await res.json();
 
   const div = document.getElementById("emails");
-  div.textContent = emails.join("\n\n--------------------\n\n");
+
+  if (emails.length === 0) {
+    div.innerHTML = "<p>Không có email nào</p>";
+    return;
+  }
+
+  div.innerHTML = emails
+    .map(
+      (email) => `
+      <div class="email-item">
+        <strong>Từ:</strong> ${email.from}<br>
+        <strong>Tiêu đề:</strong> ${email.subject}<br>
+        <strong>Nội dung:</strong> ${email.text}<br>
+        <small>${new Date(email.date).toLocaleString("vi-VN")}</small>
+      </div>
+    `
+    )
+    .join("");
 }

@@ -1,8 +1,17 @@
-const express = require("express");
-const nodemailer = require("nodemailer");
-// const POP3Client = require("poplib");
-const cors = require("cors");
-require("dotenv").config();
+import express from "express";
+import nodemailer from "nodemailer";
+import Imap from "imap-simple";
+import { simpleParser } from "mailparser";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from root directory
+dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 const app = express();
 app.use(cors());
@@ -10,6 +19,11 @@ app.use(express.json());
 
 const EMAIL = process.env.EMAIL;
 const PASSWORD = process.env.PASSWORD;
+
+if (!EMAIL || !PASSWORD) {
+  console.error("❌ Thiếu EMAIL hoặc PASSWORD trong file .env");
+  process.exit(1);
+}
 
 // API gửi email
 app.post("/send", async (req, res) => {
@@ -34,38 +48,56 @@ app.post("/send", async (req, res) => {
 });
 
 // API nhận email
-app.get("/receive", (req, res) => {
-  const client = new POP3Client(995, "pop.gmail.com", {
-    enabletls: true,
-    debug: false,
-    tls: { rejectUnauthorized: false },
-  });
+app.get("/receive", async (req, res) => {
+  try {
+    const config = {
+      imap: {
+        user: EMAIL,
+        password: PASSWORD,
+        host: "imap.gmail.com",
+        port: 993,
+        tls: true,
+        tlsOptions: { rejectUnauthorized: false },
+        authTimeout: 10000,
+      },
+    };
 
-  let emails = [];
-  client.on("connect", () => client.login(EMAIL, PASSWORD));
-  client.on("login", (status) => {
-    if (status) client.list();
-    else res.status(500).json({ message: "Đăng nhập POP3 thất bại" });
-  });
+    const connection = await Imap.connect(config);
+    await connection.openBox("INBOX");
 
-  client.on("list", (status, msgcount) => {
-    if (msgcount === 0) {
-      res.json([]);
-      client.quit();
-    } else {
-      client.retr(msgcount);
+    const searchCriteria = ["ALL"];
+    const fetchOptions = {
+      bodies: ["HEADER", "TEXT", ""],
+      markSeen: false,
+    };
+
+    const messages = await connection.search(searchCriteria, fetchOptions);
+    const emails = [];
+
+    // Lấy 10 email mới nhất
+    for (const item of messages.slice(-10)) {
+      const all = item.parts.find((part) => part.which === "");
+      const id = item.attributes.uid;
+      const idHeader = "Imap-Id: " + id + "\r\n";
+      const parsed = await simpleParser(idHeader + all.body);
+
+      emails.push({
+        from: parsed.from?.text || "Unknown",
+        subject: parsed.subject || "No Subject",
+        text: parsed.text?.substring(0, 200) || "No Content",
+        date: parsed.date || new Date(),
+      });
     }
-  });
 
-  client.on("retr", (status, msgnumber, data) => {
-    emails.push(data);
-    res.json(emails);
-    client.quit();
-  });
-
-  client.on("error", (err) => res.status(500).json({ message: err.message }));
+    connection.end();
+    res.json(emails.reverse());
+  } catch (err) {
+    console.error("❌ IMAP Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
-app.listen(3000, () =>
-  console.log("🚀 Mail System backend chạy tại http://localhost:3000")
-);
+app.listen(3001, "0.0.0.0", () => {
+  console.log("🚀 Mail System backend chạy tại http://0.0.0.0:3001");
+  console.log("📧 Email:", EMAIL);
+});

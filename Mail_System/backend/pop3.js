@@ -1,36 +1,71 @@
 import dotenv from "dotenv";
-import { Client } from "node-poplib-gowhich";
-import { simpleParser } from "mailparser";
+import POP3Client from "node-pop3";
 
 dotenv.config();
 
-const client = new Client({
-  hostname: process.env.POP3_HOST,
-  port: Number(process.env.POP3_PORT) || 995,
-  tls: true,
-  user: process.env.EMAIL,
-  pass: process.env.PASSWORD,
-  debug: true,
+const client = new POP3Client(
+  Number(process.env.POP3_PORT) || 995,
+  process.env.POP3_HOST || "pop.gmail.com",
+  {
+    enabletls: true,
+    debug: true,
+    tls: { rejectUnauthorized: false },
+  }
+);
+
+client.on("connect", () => {
+  console.log("🔌 Đang kết nối...");
+  client.login(process.env.EMAIL, process.env.PASSWORD);
 });
 
-client.on("ready", async () => {
-  console.log("✅ Connected & Logged in");
+client.on("login", (status, rawdata) => {
+  if (status) {
+    console.log("✅ Đăng nhập thành công!");
+    client.list();
+  } else {
+    console.error("❌ Đăng nhập thất bại:", rawdata);
+    client.quit();
+  }
+});
 
-  const { count } = await client.stat();
-  console.log(`📬 You have ${count} emails`);
+client.on("list", (status, msgcount, msgnumber, data, rawdata) => {
+  console.log(`📬 Bạn có ${msgcount} email`);
 
-  if (count > 0) {
-    const raw = await client.retr(count);
-    const parsed = await simpleParser(raw);
-    console.log("📨 From:", parsed.from?.text);
-    console.log("✉️ Subject:", parsed.subject);
-    console.log("📝 Body:", parsed.text?.substring(0, 200));
+  if (msgcount === 0) {
+    console.log("📭 Hộp thư trống");
+    client.quit();
+  } else {
+    console.log(`📨 Đang lấy email #${msgcount}...`);
+    client.retr(msgcount);
+  }
+});
+
+client.on("retr", (status, msgnumber, data, rawdata) => {
+  console.log("\n📧 Email mới nhất:");
+  console.log("─".repeat(50));
+
+  const lines = data.split("\n");
+  const fromLine = lines.find((l) => l.toLowerCase().startsWith("from:"));
+  const subjectLine = lines.find((l) => l.toLowerCase().startsWith("subject:"));
+
+  if (fromLine) console.log("📤", fromLine);
+  if (subjectLine) console.log("✉️ ", subjectLine);
+
+  console.log("\n📝 Nội dung (200 ký tự đầu):");
+  const bodyStart = data.indexOf("\n\n");
+  if (bodyStart > 0) {
+    console.log(data.substring(bodyStart + 2, bodyStart + 202) + "...");
   }
 
+  console.log("─".repeat(50));
   client.quit();
 });
 
-client.on("error", (err) => console.error("❌ POP3 Error:", err));
-client.on("close", () => console.log("👋 Connection closed"));
+client.on("error", (err) => {
+  console.error("❌ Lỗi POP3:", err.message);
+  client.quit();
+});
 
-client.connect();
+client.on("quit", () => {
+  console.log("👋 Đã ngắt kết nối");
+});
