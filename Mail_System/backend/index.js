@@ -66,17 +66,19 @@ app.get("/receive", async (req, res) => {
     const connection = await Imap.connect(config);
     await connection.openBox("INBOX");
 
-    const searchCriteria = ["ALL"];
+    // const searchCriteria = ["ALL"];
+    const searchCriteria = ["RECENT"]; // hoặc ["RECENT"]
     const fetchOptions = {
       bodies: ["HEADER", "TEXT", ""],
       markSeen: false,
     };
 
     const messages = await connection.search(searchCriteria, fetchOptions);
+    const latest = messages.slice(-5);
     const emails = [];
 
     // Lấy 10 email mới nhất
-    for (const item of messages.slice(-10)) {
+    for (const item of messages.slice(-5)) {
       const all = item.parts.find((part) => part.which === "");
       const id = item.attributes.uid;
       const idHeader = "Imap-Id: " + id + "\r\n";
@@ -109,24 +111,26 @@ app.get("/receiver", async (req, res) => {
         port: 993,
         tls: true,
         tlsOptions: { rejectUnauthorized: false },
-        authTimeout: 30000,
+        authTimeout: 10000,
       },
     };
 
     const connection = await Imap.connect(config);
     await connection.openBox("INBOX");
 
-    const searchCriteria = ["ALL"];
+    // const searchCriteria = ["ALL"];
+    const searchCriteria = ["RECENT"]; // hoặc ["RECENT"]
     const fetchOptions = {
       bodies: ["HEADER", "TEXT", ""],
       markSeen: false,
     };
 
     const messages = await connection.search(searchCriteria, fetchOptions);
+    const latest = messages.slice(-5);
     const emails = [];
 
     // Lấy 20 email mới nhất
-    for (const item of messages.slice(-20)) {
+    for (const item of messages.slice(-5)) {
       const all = item.parts.find((part) => part.which === "");
       const id = item.attributes.uid;
       const idHeader = "Imap-Id: " + id + "\r\n";

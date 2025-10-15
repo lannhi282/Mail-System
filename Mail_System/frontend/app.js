@@ -1,6 +1,11 @@
 const API = "/api";
 
 async function sendMail() {
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = "⏳ Đang gửi...";
+  btn.disabled = true;
+
   try {
     const to = document.getElementById("to").value;
     const subject = document.getElementById("subject").value;
@@ -24,6 +29,9 @@ async function sendMail() {
   } catch (err) {
     console.error(err);
     alert("❌ Lỗi kết nối backend: " + err.message);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
   }
 }
 async function getMail() {
