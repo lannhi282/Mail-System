@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📬 Hệ Thống Nhận Mail</title>
+    <link rel="stylesheet" href="receiver-style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>📬 Hệ Thống Nhận Mail</h1>
+      <div class="header-actions">
+        <button onclick="loadEmails()" class="btn-refresh">🔄 Làm mới</button>
+        <button onclick="toggleAutoRefresh()" id="autoRefreshBtn" class="btn-auto">
+          ⏸️ Tắt tự động làm mới
+        </button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="inbox-stats">
+        <div class="stat-item">
+          <span class="stat-label">Tổng số email:</span>
+          <span id="totalEmails" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Email mới nhất:</span>
+          <span id="latestEmail" class="stat-value">--</span>
+        </div>
+      </div>
+
+      <div id="emailList" class="email-list">
+        <p class="loading">Đang tải email...</p>
+      </div>
+    </div>
+
+    <script src="receiver-app.js"></script>
+  </body>
+</html>

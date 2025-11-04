@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mail System</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h1>📧 Mail System</h1>
+      <a href="receiver.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+        📬 Xem Hệ Thống Nhận Mail
+      </a>
+    </div>
+
+    <section id="send-mail">
+      <h2>Gửi Email</h2>
+      <input id="to" placeholder="Người nhận" />
+      <input id="subject" placeholder="Tiêu đề" />
+      <textarea id="message" placeholder="Nội dung"></textarea>
+      <button onclick="sendMail()">Gửi</button>
+    </section>
+
+    <section id="inbox">
+      <h2>Hộp thư đến</h2>
+      <button onclick="getMail()">Làm mới</button>
+      <div id="emails"></div>
+    </section>
+
+    <script src="app.js"></script>
+  </body>
+</html>
